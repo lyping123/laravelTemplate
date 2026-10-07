@@ -7,7 +7,7 @@ export default function Register() {
         <>
             <Head title="Create account" />
             <AuthLayout
-                eyebrow="Start fresh"
+                eyebrow="Register for a new account"
                 title="Your next chapter starts here."
                 description="Create an account in a moment. We will send one quick email to confirm it is really you."
                 footer={

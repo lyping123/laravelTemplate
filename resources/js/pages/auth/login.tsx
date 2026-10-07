@@ -7,7 +7,7 @@ export default function Login() {
         <>
             <Head title="Log in" />
             <AuthLayout
-                eyebrow="Welcome back"
+                eyebrow="Login to your account"
                 title="Pick up where you left off."
                 description="Sign in to return to your space and keep your momentum going."
                 footer={

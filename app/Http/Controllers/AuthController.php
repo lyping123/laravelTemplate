@@ -20,6 +20,11 @@ class AuthController extends Controller
         return Inertia::render('auth/login');
     }
 
+    public function dashboard(): Response
+    {
+        return  Inertia::render('dashboard');
+    }
+
     public function storeLogin(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -36,7 +41,7 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
-
+        
         return redirect()->intended(route('home'));
     }
 

@@ -3,14 +3,7 @@
         "copilot"
     ],
     "cloud": false,
-    "guidelines": true,
     "mcp": true,
     "nightwatch": false,
-    "sail": false,
-    "skills": [
-        "laravel-best-practices",
-        "wayfinder-development",
-        "inertia-react-development",
-        "tailwindcss-development"
-    ]
+    "sail": false
 }

@@ -22,3 +22,5 @@ Route::middleware('auth')->group(function (): void {
         ->name('verification.send');
     Route::post('/logout', [AuthController::class, 'destroySession'])->name('logout');
 });
+
+
