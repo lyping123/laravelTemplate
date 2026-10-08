@@ -15,6 +15,7 @@ use Inertia\Response;
 
 class AuthController extends Controller
 {
+
     public function createLogin(): Response
     {
         return Inertia::render('auth/login');
@@ -73,7 +74,7 @@ class AuthController extends Controller
     public function showVerification(): Response|RedirectResponse
     {
         if (request()->user()?->hasVerifiedEmail()) {
-            return redirect()->route('home');
+            return redirect()->route('dashboard');
         }
 
         return Inertia::render('auth/verify-email', [
@@ -84,9 +85,9 @@ class AuthController extends Controller
     public function sendVerification(Request $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->route('home');
+            return redirect()->route('dashboard');
         }
-
+        
         $request->user()->sendEmailVerificationNotification();
 
         return back()->with('status', 'verification-link-sent');
@@ -104,7 +105,7 @@ class AuthController extends Controller
             event(new Verified($user));
         }
 
-        return redirect()->route('home')->with('status', 'email-verified');
+        return redirect()->route('dashboard')->with('status', 'email-verified');
     }
 
     public function destroySession(Request $request): RedirectResponse
@@ -113,6 +114,8 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home');
+        return redirect()->route('dashboard');
     }
+
+    
 }

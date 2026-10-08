@@ -12,6 +12,8 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/register', [AuthController::class, 'storeRegistration'])->name('register.store');
 });
 
+
+
 Route::middleware('auth')->group(function (): void {
     Route::get('/email/verify', [AuthController::class, 'showVerification'])->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
@@ -21,6 +23,7 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('throttle:6,1')
         ->name('verification.send');
     Route::post('/logout', [AuthController::class, 'destroySession'])->name('logout');
+    Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
 });
 
 
