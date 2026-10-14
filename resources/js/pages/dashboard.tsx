@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { logout } from '@/routes';
+import userInformation from '@/routes/user-information';
 import type { Auth } from '@/types/auth';
 
 type SharedProps = {
@@ -174,8 +175,8 @@ export default function Dashboard() {
                         </div>
 
                         <div className="mt-auto grid gap-1">
-                            <a
-                                href="#"
+                            <Link
+                                href={userInformation.create.url()}
                                 className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#b7c0b8] transition hover:bg-white/10 hover:text-white"
                             >
                                 <Icon
@@ -183,7 +184,7 @@ export default function Dashboard() {
                                     className="h-[18px] w-[18px]"
                                 />
                                 Settings
-                            </a>
+                            </Link>
                             <Link
                                 href={logout.url()}
                                 method="post"

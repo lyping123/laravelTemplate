@@ -22,7 +22,7 @@ export default function Login() {
                     </>
                 }
             >
-                <Form action={login.url()} method="post" className="grid gap-5">
+                <Form action="/login" method="post" className="grid gap-5">
                     {({ errors, processing }) => (
                         <>
                             <label

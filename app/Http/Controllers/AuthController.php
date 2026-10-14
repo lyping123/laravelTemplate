@@ -15,7 +15,6 @@ use Inertia\Response;
 
 class AuthController extends Controller
 {
-
     public function createLogin(): Response
     {
         return Inertia::render('auth/login');
@@ -23,7 +22,17 @@ class AuthController extends Controller
 
     public function dashboard(): Response
     {
-        return  Inertia::render('dashboard');
+        return Inertia::render('dashboard');
+    }
+
+    public function createUserInformation(): Response
+    {
+        $user = request()->user()->load(['userInformation', 'userAddress']);
+
+        return Inertia::render('user-information', [
+            'userInformation' => $user->userInformation,
+            'address' => $user->userAddress->first(),
+        ]);
     }
 
     public function storeLogin(Request $request): RedirectResponse
@@ -42,8 +51,8 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
-        
-        return redirect()->intended(route('home'));
+
+        return redirect()->intended(route('dashboard'));
     }
 
     public function createRegistration(): Response
@@ -87,7 +96,7 @@ class AuthController extends Controller
         if ($request->user()->hasVerifiedEmail()) {
             return redirect()->route('dashboard');
         }
-        
+
         $request->user()->sendEmailVerificationNotification();
 
         return back()->with('status', 'verification-link-sent');
@@ -98,7 +107,7 @@ class AuthController extends Controller
         $user = $request->user();
 
         if ($user->hasVerifiedEmail()) {
-            return redirect()->route('home');
+            return redirect()->route('dashboard');
         }
 
         if ($user->markEmailAsVerified()) {
@@ -114,8 +123,56 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('dashboard');
+        return redirect()->route('login');
     }
 
-    
+    public function addUserinformation(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'ic' => ['required', 'string', 'max:255'],
+            'tin_number' => ['nullable', 'string', 'max:255'],
+            'phone_number' => ['required', 'string', 'max:255'],
+            'address' => ['nullable', 'required_with:city,state,zip_code', 'string', 'max:255'],
+            'city' => ['nullable', 'required_with:address,state,zip_code', 'string', 'max:255'],
+            'state' => ['nullable', 'required_with:address,city,zip_code', 'string', 'max:255'],
+            'zip_code' => ['nullable', 'required_with:address,city,state', 'string', 'max:20'],
+        ]);
+
+        $user = $request->user();
+
+        $qry="select * from user u inner join user_information ui on u.id=ui.user_id where user_id=".$user->id;
+        $user->userInformation()->updateOrCreate([], [
+            'name' => $validated['name'],
+            'ic' => $validated['ic'],
+            'tin_number' => $validated['tin_number'] ?? null,
+            'phone_number' => $validated['phone_number'],
+        ]);
+
+        if ($request->filled('address')) {
+            $user->userAddress()->updateOrCreate([], [
+                'address' => $validated['address'],
+                'city' => $validated['city'],
+                'state' => $validated['state'],
+                'zip_code' => $validated['zip_code'],
+            ]);
+        }
+
+        return back()->with('status', 'information-added');
+    }
+
+    public function addUserAddress(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'address' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'state' => ['required', 'string', 'max:255'],
+            'zip_code' => ['required', 'string', 'max:20'],
+        ]);
+
+        $user = $request->user();
+        $user->userAddress()->create($validated);
+
+        return redirect()->route('dashboard')->with('status', 'address-added');
+    }
 }
