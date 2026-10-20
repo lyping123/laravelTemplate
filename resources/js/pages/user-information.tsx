@@ -1,6 +1,9 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { useState, type ChangeEvent } from 'react';
 import { dashboard } from '@/routes';
 import userInformation from '@/routes/user-information';
+import StateSelectbox from '@/components/StateSelectbox';
+
 
 type UserInformation = {
     name: string;
@@ -12,14 +15,25 @@ type UserInformation = {
 type Address = {
     address: string;
     city: string;
-    state: string;
+    states: string[];
+    selectedState: string;
     zip_code: string;
 };
+
+type StateSelectboxProps = {
+    states: string[];
+    selectedState: string;
+    onChange: (event: ChangeEvent<HTMLSelectElement>) => void;
+};
+
 
 type UserInformationPageProps = {
     userInformation: UserInformation | null;
     address: Address | null;
+
 };
+
+
 
 const inputClassName =
     'h-12 w-full rounded-xl border border-[#cbd1c8] bg-white px-4 text-sm text-[#18211d] outline-none transition placeholder:text-[#9aa49b] focus:border-[#18211d] focus:ring-4 focus:ring-[#d8f36a]/50';
@@ -63,6 +77,14 @@ export default function UserInformation({
     userInformation: profile,
     address,
 }: UserInformationPageProps) {
+    const [selectedState, setSelectedState] = useState(
+        address?.selectedState ?? '',
+    );
+
+    const handleStateChange = (event: ChangeEvent<HTMLSelectElement>) => {
+        setSelectedState(event.target.value);
+    };
+
     return (
         <>
             <Head title="User information" />
@@ -178,13 +200,10 @@ export default function UserInformation({
                                                     }
                                                     error={errors.city}
                                                 />
-                                                <Field
-                                                    label="State"
-                                                    name="state"
-                                                    defaultValue={
-                                                        address?.state ?? ''
-                                                    }
-                                                    error={errors.state}
+                                                <StateSelectbox
+                                                    states={address?.states ?? []}
+                                                    selectedState={selectedState}
+                                                    onChange={handleStateChange}
                                                 />
                                                 <Field
                                                     label="ZIP code"

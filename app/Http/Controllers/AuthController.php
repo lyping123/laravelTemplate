@@ -28,10 +28,18 @@ class AuthController extends Controller
     public function createUserInformation(): Response
     {
         $user = request()->user()->load(['userInformation', 'userAddress']);
+        $states = ['Johor', 'Pulau Pinang', 'Kedah', 'Kelantan', 'Melaka', 'Negeri Sembilan', 'Pahang', 'Perak', 'Perlis', 'Sabah', 'Sarawak', 'Selangor', 'Terengganu'];
+        $address = [
+            'address' => $user->userAddress->first()?->address ?? '',
+            'city' => $user->userAddress->first()?->city ?? '',
+            'states' => $states,
+            'selectedState' => $user->userAddress->first()?->state ?? '',
+            'zip_code' => $user->userAddress->first()?->zip_code ?? '',
+        ];
 
         return Inertia::render('user-information', [
             'userInformation' => $user->userInformation,
-            'address' => $user->userAddress->first(),
+            'address' => $address
         ]);
     }
 
@@ -64,7 +72,7 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
@@ -141,7 +149,7 @@ class AuthController extends Controller
 
         $user = $request->user();
 
-        $qry="select * from user u inner join user_information ui on u.id=ui.user_id where user_id=".$user->id;
+        $qry = "select * from user u inner join user_information ui on u.id=ui.user_id where user_id=" . $user->id;
         $user->userInformation()->updateOrCreate([], [
             'name' => $validated['name'],
             'ic' => $validated['ic'],
