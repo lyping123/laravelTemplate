@@ -1,5 +1,6 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { useState, type ChangeEvent } from 'react';
+import axios from 'axios';
 import { dashboard } from '@/routes';
 import userInformation from '@/routes/user-information';
 import StateSelectbox from '@/components/StateSelectbox';
@@ -85,6 +86,39 @@ export default function UserInformation({
         setSelectedState(event.target.value);
     };
 
+    const findTinNumber = () => {
+        axios.get('http://localhost:8000/api/v1/tin-number', {
+            params: {
+                ic: profile?.ic,
+            },
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => {
+                if (response.status === 200) {
+                    return response.data;
+                } else {
+                    throw new Error('Failed to fetch TIN number');
+                }
+
+            })
+            .then((data) => {
+                const tinNumber = data.tin || data.error;
+                // Update the TIN number field in the form
+                const tinNumberInput = document.querySelector<HTMLInputElement>(
+                    'input[name="tin_number"]',
+                );
+
+                if (tinNumberInput) {
+                    tinNumberInput.value = tinNumber;
+                }
+            })
+            .catch((error) => {
+                console.error('Error fetching TIN number:', error);
+            });
+    }
+
     return (
         <>
             <Head title="User information" />
@@ -159,8 +193,12 @@ export default function UserInformation({
                                                 defaultValue={
                                                     profile?.tin_number ?? ''
                                                 }
+
                                                 error={errors.tin_number}
                                             />
+                                            <button type="button" onClick={findTinNumber} className="rounded-xl border border-[#cbd1c8] bg-white px-4 py-3 text-sm font-semibold text-[#18211d] transition hover:border-[#9aa49b] hover:bg-[#f5f1e8] sm:ml-auto">
+                                                Get TIN
+                                            </button>
                                             <Field
                                                 label="Phone number"
                                                 name="phone_number"
