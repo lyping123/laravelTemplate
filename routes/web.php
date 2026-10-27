@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -24,4 +25,5 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
     Route::get('/user-information', [AuthController::class, 'createUserInformation'])->name('user-information.create');
     Route::post('/user-information', [AuthController::class, 'addUserinformation'])->name('user-information.store');
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 });

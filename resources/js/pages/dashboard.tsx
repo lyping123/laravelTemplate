@@ -17,17 +17,18 @@ function Icon({
     className = 'h-5 w-5',
 }: IconProps & {
     name:
-        | 'grid'
-        | 'trend'
-        | 'folder'
-        | 'calendar'
-        | 'settings'
-        | 'search'
-        | 'bell'
-        | 'arrow'
-        | 'plus'
-        | 'more'
-        | 'check';
+    | 'grid'
+    | 'trend'
+    | 'folder'
+    | 'calendar'
+    | 'package'
+    | 'settings'
+    | 'search'
+    | 'bell'
+    | 'arrow'
+    | 'plus'
+    | 'more'
+    | 'check';
 }) {
     const paths = {
         grid: (
@@ -46,6 +47,12 @@ function Icon({
             <>
                 <rect x="3" y="5" width="18" height="16" rx="2" />
                 <path d="M16 3v4M8 3v4M3 10h18" />
+            </>
+        ),
+        package: (
+            <>
+                <path d="m4 8 8-4 8 4v9l-8 4-8-4V8Z" />
+                <path d="m4 8 8 4 8-4M12 12v9" />
             </>
         ),
         settings: (
@@ -82,10 +89,10 @@ function Icon({
 }
 
 const navigation = [
-    { label: 'Overview', icon: 'grid' as const, active: true },
-    { label: 'Analytics', icon: 'trend' as const },
-    { label: 'Projects', icon: 'folder' as const, count: '4' },
-    { label: 'Schedule', icon: 'calendar' as const },
+    { label: 'Overview', link: '/', icon: 'grid' as const, active: true },
+    { label: 'Products', link: '/products', icon: 'package' as const },
+    { label: 'Projects', link: '/projects', icon: 'folder' as const, count: '4' },
+    { label: 'Schedule', link: '/schedule', icon: 'calendar' as const },
 ];
 
 const activities = [
@@ -152,7 +159,7 @@ export default function Dashboard() {
                                 {navigation.map((item) => (
                                     <a
                                         key={item.label}
-                                        href="#"
+                                        href={item.link}
                                         className={`flex items-center justify-between rounded-xl px-3 py-3 text-sm transition ${item.active ? 'bg-[#d8f36a] font-semibold text-[#18211d]' : 'text-[#b7c0b8] hover:bg-white/10 hover:text-white'}`}
                                     >
                                         <span className="flex items-center gap-3">

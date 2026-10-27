@@ -45,7 +45,6 @@ class apiController extends Controller
         if (!$accessToken) {
             return response()->json(['error' => 'Access token is required'], 401);
         }
-
         $ic = $request->input('ic');
         $response = Http::withHeaders([
             'authorization' => $accessToken,
