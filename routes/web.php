@@ -25,5 +25,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
     Route::get('/user-information', [AuthController::class, 'createUserInformation'])->name('user-information.create');
     Route::post('/user-information', [AuthController::class, 'addUserinformation'])->name('user-information.store');
+
+    // products
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
 });
