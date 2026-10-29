@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import productsRoute from '@/routes/products';
@@ -190,6 +190,12 @@ export default function Index() {
                             <span>Suppliers added</span>
                         </div>
                     </header>
+                    <Link
+                        href={productsRoute.list.url()}
+                        className="mt-6 inline-flex rounded-xl border border-[#cbd1c8] bg-white/70 px-4 py-3 text-sm font-semibold transition hover:border-[#18211d] hover:bg-white"
+                    >
+                        View product list
+                    </Link>
 
                     <form
                         onSubmit={handleSubmit}
