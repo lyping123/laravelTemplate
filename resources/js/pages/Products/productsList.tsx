@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import productsRoute from '@/routes/products';
+import { dashboard } from '@/routes';
 
 type Product = {
     id: number;
@@ -115,6 +116,14 @@ export default function ProductsList({ products }: ProductsListProps) {
         <>
             <Head title="Product List" />
             <main className="min-h-screen bg-[#f5f1e8] px-5 py-8 text-[#18211d] sm:px-8 lg:px-12 lg:py-12">
+
+                <Link
+                    href={dashboard.url()}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-[#68736c] transition hover:text-[#18211d]"
+                >
+                    <span aria-hidden="true">←</span>
+                    Back to dashboard
+                </Link>
                 <div className="mx-auto max-w-7xl">
                     <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                         <div>

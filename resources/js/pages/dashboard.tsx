@@ -90,8 +90,8 @@ function Icon({
 
 const navigation = [
     { label: 'Overview', link: '/', icon: 'grid' as const, active: true },
-    { label: 'Products', link: '/products', icon: 'package' as const },
-    { label: 'Projects', link: '/projects', icon: 'folder' as const, count: '4' },
+    { label: 'Products', link: '/products/list', icon: 'package' as const },
+    { label: 'buyer', link: '/buyer', icon: 'folder' as const, count: '4' },
     { label: 'Schedule', link: '/schedule', icon: 'calendar' as const },
 ];
 

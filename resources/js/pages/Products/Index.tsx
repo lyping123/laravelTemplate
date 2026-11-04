@@ -137,6 +137,7 @@ export default function Index() {
         setProcessing(true);
 
         router.post(
+            //   /products POST
             productsRoute.store.url(),
             { supplier, products },
             {
@@ -190,6 +191,7 @@ export default function Index() {
                             <span>Suppliers added</span>
                         </div>
                     </header>
+                    {/*  /products/list */}
                     <Link
                         href={productsRoute.list.url()}
                         className="mt-6 inline-flex rounded-xl border border-[#cbd1c8] bg-white/70 px-4 py-3 text-sm font-semibold transition hover:border-[#18211d] hover:bg-white"
