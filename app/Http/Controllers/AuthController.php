@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\buyer;
+use App\Models\buyer_cart_list;
+use App\Models\productStockIn;
+use App\Models\supplier;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
@@ -22,7 +26,26 @@ class AuthController extends Controller
 
     public function dashboard(): Response
     {
-        return Inertia::render('dashboard');
+        return Inertia::render('dashboard', [
+            'summary' => [
+                'buyerCount' => buyer::query()->count(),
+                'cartListCount' => buyer_cart_list::query()->count(),
+                'cartTotal' => buyer_cart_list::query()->sum('total_price'),
+                'productCount' => productStockIn::query()->count(),
+                'supplierCount' => supplier::query()->count(),
+                'stockCount' => productStockIn::query()->sum('quantity'),
+            ],
+            'recentCartLists' => buyer_cart_list::query()
+                ->with('buyer')
+                ->latest()
+                ->limit(5)
+                ->get(['id', 'buyer_id', 'invoice_number', 'total_price', 'status', 'created_at']),
+            'recentProducts' => productStockIn::query()
+                ->with('supplier')
+                ->latest()
+                ->limit(5)
+                ->get(['id', 'supplier_id', 'product_name', 'quantity', 'price', 'created_at']),
+        ]);
     }
 
     public function createUserInformation(): Response
@@ -39,7 +62,7 @@ class AuthController extends Controller
 
         return Inertia::render('user-information', [
             'userInformation' => $user->userInformation,
-            'address' => $address
+            'address' => $address,
         ]);
     }
 
@@ -72,7 +95,7 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
@@ -149,7 +172,7 @@ class AuthController extends Controller
 
         $user = $request->user();
 
-        $qry = "select * from user u inner join user_information ui on u.id=ui.user_id where user_id=" . $user->id;
+        $qry = 'select * from user u inner join user_information ui on u.id=ui.user_id where user_id='.$user->id;
         $user->userInformation()->updateOrCreate([], [
             'name' => $validated['name'],
             'ic' => $validated['ic'],

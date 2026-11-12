@@ -2,6 +2,10 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import buyerController from '@/actions/App/Http/Controllers/buyerController';
+import Pagination, {
+    type Paginated,
+} from '@/components/Pagination';
+
 import { dashboard } from '@/routes';
 
 type Buyer = {
@@ -33,8 +37,8 @@ type CartList = {
 
 type BuyerPageProps = {
     buyers: Buyer[];
-    products: Product[];
-    cartLists: CartList[];
+    products: Paginated<Product>;
+    cartLists: Paginated<CartList>;
 };
 
 const formatPrice = (price: string | number) =>
@@ -56,7 +60,7 @@ export default function BuyerIndex({
 
     const selectedProducts = useMemo(
         () =>
-            products
+            products.data
                 .filter((product) => (quantities[product.id] ?? 0) > 0)
                 .map((product) => ({
                     product,
@@ -201,12 +205,12 @@ export default function BuyerIndex({
                             </div>
 
                             <div className="mt-6 grid gap-3">
-                                {products.length === 0 ? (
+                                {products.data.length === 0 ? (
                                     <p className="rounded-2xl bg-[#f5f1e8] p-5 text-sm text-[#68736c]">
                                         No products are available yet.
                                     </p>
                                 ) : (
-                                    products.map((product) => (
+                                    products.data.map((product) => (
                                         <div
                                             key={product.id}
                                             className="flex flex-col gap-4 rounded-2xl border border-[#dfe2da] p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -240,6 +244,7 @@ export default function BuyerIndex({
                                     ))
                                 )}
                             </div>
+                            <Pagination pagination={products} />
                         </section>
 
                         <aside className="h-fit rounded-3xl bg-[#18211d] p-6 text-[#f5f1e8] sm:p-8">
@@ -265,7 +270,7 @@ export default function BuyerIndex({
                                                 <span>
                                                     {formatPrice(
                                                         Number(product.price) *
-                                                            quantity,
+                                                        quantity,
                                                     )}
                                                 </span>
                                             </div>
@@ -309,13 +314,13 @@ export default function BuyerIndex({
                         <h2 className="text-xl font-semibold">
                             Recent cart lists
                         </h2>
-                        {cartLists.length === 0 ? (
+                        {cartLists.data.length === 0 ? (
                             <p className="mt-3 text-sm text-[#68736c]">
                                 No cart lists have been added yet.
                             </p>
                         ) : (
                             <div className="mt-5 grid gap-3">
-                                {cartLists.map((cart) => (
+                                {cartLists.data.map((cart) => (
                                     <div
                                         key={cart.id}
                                         className="flex flex-col gap-2 rounded-2xl bg-[#f5f1e8] p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -339,6 +344,7 @@ export default function BuyerIndex({
                                 ))}
                             </div>
                         )}
+                        <Pagination pagination={cartLists} />
                     </section>
                 </div>
             </main>

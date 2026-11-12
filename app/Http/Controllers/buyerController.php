@@ -20,14 +20,18 @@ class buyerController extends Controller
 
     public function index(): Response
     {
+
         return Inertia::render('buyer/index', [
             'buyers' => buyer::query()->orderBy('buyer_name')->get(),
-            'products' => productStockIn::query()->orderBy('product_name')->get(),
+            'products' => productStockIn::query()
+                ->orderBy('product_name')
+                ->paginate(2, ['*'], 'products_page')
+                ->withQueryString(),
             'cartLists' => buyer_cart_list::query()
                 ->with(['buyer', 'ProductsList.product'])
                 ->latest()
-                ->limit(10)
-                ->get(),
+                ->paginate(2, ['*'], 'cart_page')
+                ->withQueryString(),
         ]);
     }
 

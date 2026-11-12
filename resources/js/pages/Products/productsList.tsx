@@ -3,6 +3,9 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import productsRoute from '@/routes/products';
 import { dashboard } from '@/routes';
+import Pagination, {
+    type Paginated
+} from '@/components/Pagination';
 
 type Product = {
     id: number;
@@ -22,7 +25,7 @@ type Supplier = {
 };
 
 type ProductsListProps = {
-    products: Product[];
+    products: Paginated<Product>;
 };
 
 type ProductForm = {
@@ -52,7 +55,7 @@ export default function ProductsList({ products }: ProductsListProps) {
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState('');
 
-    const productCount = products.length;
+    const productCount = products.data.length;
 
     const openEdit = (product: Product) => {
         setEditingProduct(product);
@@ -147,7 +150,7 @@ export default function ProductsList({ products }: ProductsListProps) {
                         </Link>
                     </header>
 
-                    {products.length === 0 ? (
+                    {products.data.length === 0 ? (
                         <section className="mt-8 rounded-3xl border border-dashed border-[#b8c0b7] bg-white/60 p-10 text-center">
                             <h2 className="text-xl font-semibold">
                                 No products yet
@@ -184,7 +187,7 @@ export default function ProductsList({ products }: ProductsListProps) {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-[#dfe2da]">
-                                        {products.map((product) => (
+                                        {products.data.map((product) => (
                                             <tr
                                                 key={product.id}
                                                 className="transition hover:bg-[#f5f1e8]/60"
@@ -238,8 +241,11 @@ export default function ProductsList({ products }: ProductsListProps) {
                                     </tbody>
                                 </table>
                             </div>
+
                         </section>
+
                     )}
+                    <Pagination pagination={products} />
                 </div>
             </main>
 

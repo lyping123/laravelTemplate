@@ -20,7 +20,8 @@ class ProductController extends Controller
     {
         $products = productStockIn::with('supplier')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(5, ['*'], 'products_page')
+            ->withQueryString();
 
         return inertia('Products/productsList', [
             'products' => $products,
