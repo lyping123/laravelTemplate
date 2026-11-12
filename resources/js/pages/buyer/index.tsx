@@ -1,149 +1,347 @@
-import { Head } from '@inertiajs/react';
-import { useState, type ChangeEvent } from 'react';
-import buyerRoute from '@/routes/buyer';
+import { Head, Link, router } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
+import buyerController from '@/actions/App/Http/Controllers/buyerController';
+import { dashboard } from '@/routes';
 
-
-type BuyerDraft = {
+type Buyer = {
+    id: number;
     buyer_name: string;
     ic: string;
-    contact_number: string;
-    line_address: string;
-    state: string;
-    zipcode: string;
-    country: string;
 };
 
-const initialBuyer: BuyerDraft = {
-    buyer_name: '',
-    ic: '',
-    contact_number: '',
-    line_address: '',
-    state: '',
-    zipcode: '',
-    country: '',
+type Product = {
+    id: number;
+    product_name: string;
+    description: string | null;
+    quantity: number;
+    price: string | number;
 };
 
-export default function index() {
-    const [buyer, setBuyer] = useState<BuyerDraft>(initialBuyer);
+type CartList = {
+    id: number;
+    invoice_number: string;
+    total_price: string | number;
+    buyer: Buyer;
+    products_list: Array<{
+        id: number;
+        quantity: number;
+        unit_price: string | number;
+        product: Product;
+    }>;
+};
 
-    const handleChange =
-        (field: keyof BuyerDraft) =>
-            (event: ChangeEvent<HTMLInputElement>): void => {
-                setBuyer((currentBuyer) => ({
-                    ...currentBuyer,
-                    [field]: event.target.value,
-                }));
-            };
+type BuyerPageProps = {
+    buyers: Buyer[];
+    products: Product[];
+    cartLists: CartList[];
+};
+
+const formatPrice = (price: string | number) =>
+    Number(price).toLocaleString('en-MY', {
+        style: 'currency',
+        currency: 'MYR',
+    });
+
+export default function BuyerIndex({
+    buyers,
+    products,
+    cartLists,
+}: BuyerPageProps) {
+    const [buyerId, setBuyerId] = useState('');
+    const [quantities, setQuantities] = useState<Record<number, number>>({});
+    const [processing, setProcessing] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+
+    const selectedProducts = useMemo(
+        () =>
+            products
+                .filter((product) => (quantities[product.id] ?? 0) > 0)
+                .map((product) => ({
+                    product,
+                    quantity: quantities[product.id],
+                })),
+        [products, quantities],
+    );
+
+    const total = selectedProducts.reduce(
+        (sum, item) => sum + Number(item.product.price) * item.quantity,
+        0,
+    );
+
+    const updateQuantity = (product: Product, value: string) => {
+        const quantity = Math.min(
+            Math.max(Number.parseInt(value, 10) || 0, 0),
+            product.quantity,
+        );
+
+        setQuantities((current) => ({ ...current, [product.id]: quantity }));
+    };
+
+    const submitCart = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setError('');
+        setSuccess('');
+
+        if (!buyerId) {
+            setError('Select a buyer before adding the cart list.');
+
+            return;
+        }
+
+        if (selectedProducts.length === 0) {
+            setError('Add at least one product to the cart list.');
+
+            return;
+        }
+
+        setProcessing(true);
+        router.post(
+            buyerController.storeCartList.url(),
+            {
+                buyer_id: Number(buyerId),
+                products: selectedProducts.map(({ product, quantity }) => ({
+                    product_id: product.id,
+                    quantity,
+                })),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setQuantities({});
+                    setSuccess('Cart list added successfully.');
+                },
+                onError: (errors) => {
+                    const firstError = Object.values(errors)[0];
+                    setError(
+                        typeof firstError === 'string'
+                            ? firstError
+                            : 'Unable to add this cart list.',
+                    );
+                },
+                onFinish: () => setProcessing(false),
+            },
+        );
+    };
 
     return (
         <>
-            <Head title="Suppliers & Products" />
-            <h2 className="ml-10 mt-2 text-2xl font-semibold">
-                Buyer Register form
-            </h2>
-            <form
-                action={buyerRoute.store.url()}
-                method='POST'
-                className="mt-8 grid gap-6 lg:grid-cols-[0.8fr_1.4fr]"
-            >
-                <div className="ml-10 mt-6 grid gap-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <label className="grid gap-2 text-sm font-semibold sm:col-span-2">
-                            Buyer Name
-                            <input
-                                name="buyer_name"
-                                value={buyer.buyer_name}
-                                onChange={handleChange('buyer_name')}
-                                placeholder=""
+            <Head title="Buyer Cart" />
+            <main className="min-h-screen bg-[#f5f1e8] px-5 py-8 text-[#18211d] sm:px-8 lg:px-12 lg:py-12">
+                <div className="mx-auto max-w-7xl">
+                    <Link
+                        href={dashboard.url()}
+                        className="text-sm font-semibold text-[#68736c] hover:text-[#18211d]"
+                    >
+                        ← Back to dashboard
+                    </Link>
+                    <header className="mt-8">
+                        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <p className="text-xs font-bold tracking-[0.2em] text-[#c44936] uppercase">
+                                    Sales workspace
+                                </p>
+                                <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+                                    Buyer cart preview
+                                </h1>
+                                <p className="mt-3 max-w-xl text-sm leading-6 text-[#68736c]">
+                                    Select a buyer, choose products, and preview
+                                    the cart total before saving the cart list.
+                                </p>
+                            </div>
+                            <Link
+                                href={buyerController.create.url()}
+                                className="inline-flex items-center justify-center rounded-xl bg-[#18211d] px-4 py-3 text-sm font-bold text-[#f5f1e8] transition hover:bg-[#2c3932]"
+                            >
+                                Add buyer
+                            </Link>
+                        </div>
+                    </header>
 
-                                className="h-12 w-full rounded-xl border border-[#dfe2da] bg-white px-4 text-sm text-[#18211d] outline-none transition placeholder:text-[#9aa49b] focus:border-[#18211d] focus:ring-4 focus:ring-[#d8f36a]/50"
-                            />
+                    <form
+                        onSubmit={submitCart}
+                        className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]"
+                    >
+                        <section className="rounded-3xl border border-[#dfe2da] bg-white/80 p-6 sm:p-8">
+                            <label
+                                className="grid gap-2 text-sm font-semibold"
+                                htmlFor="buyer"
+                            >
+                                Buyer
+                                <select
+                                    id="buyer"
+                                    value={buyerId}
+                                    onChange={(event) =>
+                                        setBuyerId(event.target.value)
+                                    }
+                                    className="h-12 rounded-xl border border-[#dfe2da] bg-white px-4 outline-none focus:border-[#18211d] focus:ring-4 focus:ring-[#d8f36a]/50"
+                                >
+                                    <option value="">Select a buyer</option>
+                                    {buyers.map((buyer) => (
+                                        <option key={buyer.id} value={buyer.id}>
+                                            {buyer.buyer_name} ({buyer.ic})
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
 
-                        </label>
-                        <label className="grid gap-2 text-sm font-semibold sm:col-span-2">
-                            Ic
-                            <input
-                                name="ic"
-                                value={buyer.ic}
-                                onChange={handleChange('ic')}
-                                placeholder=""
-                                required
-                                className="h-12 w-full rounded-xl border border-[#dfe2da] bg-white px-4 text-sm text-[#18211d] outline-none transition placeholder:text-[#9aa49b] focus:border-[#18211d] focus:ring-4 focus:ring-[#d8f36a]/50"
-                            />
+                            <div className="mt-8 flex items-center justify-between gap-4">
+                                <div>
+                                    <h2 className="text-xl font-semibold">
+                                        Products
+                                    </h2>
+                                    <p className="mt-1 text-sm text-[#68736c]">
+                                        Enter a quantity to add an item.
+                                    </p>
+                                </div>
+                                <span className="rounded-full bg-[#d8f36a] px-3 py-1 text-xs font-bold">
+                                    {selectedProducts.length} selected
+                                </span>
+                            </div>
 
-                        </label>
-                        <label className="grid gap-2 text-sm font-semibold sm:col-span-2">
-                            Conatct Number
-                            <input
-                                name="contact_number"
-                                value={buyer.contact_number}
-                                onChange={handleChange('contact_number')}
-                                placeholder=""
-                                required
-                                className="h-12 w-full rounded-xl border border-[#dfe2da] bg-white px-4 text-sm text-[#18211d] outline-none transition placeholder:text-[#9aa49b] focus:border-[#18211d] focus:ring-4 focus:ring-[#d8f36a]/50"
-                            />
+                            <div className="mt-6 grid gap-3">
+                                {products.length === 0 ? (
+                                    <p className="rounded-2xl bg-[#f5f1e8] p-5 text-sm text-[#68736c]">
+                                        No products are available yet.
+                                    </p>
+                                ) : (
+                                    products.map((product) => (
+                                        <div
+                                            key={product.id}
+                                            className="flex flex-col gap-4 rounded-2xl border border-[#dfe2da] p-4 sm:flex-row sm:items-center sm:justify-between"
+                                        >
+                                            <div>
+                                                <h3 className="font-semibold">
+                                                    {product.product_name}
+                                                </h3>
+                                                <p className="mt-1 text-sm text-[#68736c]">
+                                                    {formatPrice(product.price)} ·{' '}
+                                                    {product.quantity} in stock
+                                                </p>
+                                            </div>
+                                            <input
+                                                aria-label={`Quantity for ${product.product_name}`}
+                                                type="number"
+                                                min="0"
+                                                max={product.quantity}
+                                                value={
+                                                    quantities[product.id] ?? ''
+                                                }
+                                                onChange={(event) =>
+                                                    updateQuantity(
+                                                        product,
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                className="h-11 w-full rounded-xl border border-[#dfe2da] px-3 text-sm sm:w-24"
+                                            />
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </section>
 
-                        </label>
-                        <label className="grid gap-2 text-sm font-semibold sm:col-span-2">
-                            line Address
-                            <input
-                                name="line_address"
-                                value={buyer.line_address}
-                                onChange={handleChange('line_address')}
-                                placeholder=""
-                                required
-                                className="h-12 w-full rounded-xl border border-[#dfe2da] bg-white px-4 text-sm text-[#18211d] outline-none transition placeholder:text-[#9aa49b] focus:border-[#18211d] focus:ring-4 focus:ring-[#d8f36a]/50"
-                            />
+                        <aside className="h-fit rounded-3xl bg-[#18211d] p-6 text-[#f5f1e8] sm:p-8">
+                            <p className="text-xs font-bold tracking-[0.2em] text-[#d8f36a] uppercase">
+                                Cart preview
+                            </p>
+                            <div className="mt-6 grid gap-3">
+                                {selectedProducts.length === 0 ? (
+                                    <p className="text-sm text-[#aab5ab]">
+                                        Your selected products will appear here.
+                                    </p>
+                                ) : (
+                                    selectedProducts.map(
+                                        ({ product, quantity }) => (
+                                            <div
+                                                key={product.id}
+                                                className="flex justify-between gap-4 text-sm"
+                                            >
+                                                <span>
+                                                    {product.product_name} ×{' '}
+                                                    {quantity}
+                                                </span>
+                                                <span>
+                                                    {formatPrice(
+                                                        Number(product.price) *
+                                                            quantity,
+                                                    )}
+                                                </span>
+                                            </div>
+                                        ),
+                                    )
+                                )}
+                            </div>
+                            <div className="mt-6 border-t border-white/15 pt-5">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-[#aab5ab]">
+                                        Total
+                                    </span>
+                                    <strong className="text-2xl">
+                                        {formatPrice(total)}
+                                    </strong>
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="mt-6 w-full rounded-xl bg-[#d8f36a] px-4 py-3 text-sm font-bold text-[#18211d] transition hover:bg-[#e4fb91] disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    {processing
+                                        ? 'Saving cart...'
+                                        : 'Add cart list'}
+                                </button>
+                            </div>
+                            {error && (
+                                <p className="mt-4 rounded-xl bg-[#c44936]/20 p-3 text-sm text-[#ffb7a9]">
+                                    {error}
+                                </p>
+                            )}
+                            {success && (
+                                <p className="mt-4 rounded-xl bg-[#d8f36a]/15 p-3 text-sm text-[#d8f36a]">
+                                    {success}
+                                </p>
+                            )}
+                        </aside>
+                    </form>
 
-                        </label>
-                        <label className="grid gap-2 text-sm font-semibold sm:col-span-2">
-                            State
-                            <input
-                                name="state"
-                                value={buyer.state}
-                                onChange={handleChange('state')}
-                                placeholder=""
-                                required
-                                className="h-12 w-full rounded-xl border border-[#dfe2da] bg-white px-4 text-sm text-[#18211d] outline-none transition placeholder:text-[#9aa49b] focus:border-[#18211d] focus:ring-4 focus:ring-[#d8f36a]/50"
-                            />
-
-                        </label>
-                        <label className="grid gap-2 text-sm font-semibold sm:col-span-2">
-                            Zipcode
-                            <input
-                                name="zipcode"
-                                value={buyer.zipcode}
-                                onChange={handleChange('zipcode')}
-                                placeholder=""
-                                required
-                                className="h-12 w-full rounded-xl border border-[#dfe2da] bg-white px-4 text-sm text-[#18211d] outline-none transition placeholder:text-[#9aa49b] focus:border-[#18211d] focus:ring-4 focus:ring-[#d8f36a]/50"
-                            />
-
-                        </label>
-                        <label className="grid gap-2 text-sm font-semibold sm:col-span-2">
-                            courtry
-                            <input
-                                name="country"
-                                value={buyer.country}
-                                onChange={handleChange('country')}
-                                placeholder=""
-                                required
-                                className="h-12 w-full rounded-xl border border-[#dfe2da] bg-white px-4 text-sm text-[#18211d] outline-none transition placeholder:text-[#9aa49b] focus:border-[#18211d] focus:ring-4 focus:ring-[#d8f36a]/50"
-                            />
-
-                        </label>
-                        <button
-                            type="submit"
-                            className="rounded-xl bg-[#18211d] px-5 py-3 text-sm font-semibold text-[#f5f1e8] transition hover:bg-[#2d3b33] disabled:cursor-wait disabled:opacity-60"
-                        >
-                            Submit
-                        </button>
-
-                    </div>
+                    <section className="mt-10 rounded-3xl border border-[#dfe2da] bg-white/80 p-6 sm:p-8">
+                        <h2 className="text-xl font-semibold">
+                            Recent cart lists
+                        </h2>
+                        {cartLists.length === 0 ? (
+                            <p className="mt-3 text-sm text-[#68736c]">
+                                No cart lists have been added yet.
+                            </p>
+                        ) : (
+                            <div className="mt-5 grid gap-3">
+                                {cartLists.map((cart) => (
+                                    <div
+                                        key={cart.id}
+                                        className="flex flex-col gap-2 rounded-2xl bg-[#f5f1e8] p-4 sm:flex-row sm:items-center sm:justify-between"
+                                    >
+                                        <div>
+                                            <p className="font-semibold">
+                                                {cart.invoice_number}
+                                            </p>
+                                            <p className="text-sm text-[#68736c]">
+                                                {cart.buyer.buyer_name} ·{' '}
+                                                {cart.products_list.length}{' '}
+                                                {cart.products_list.length === 1
+                                                    ? 'item'
+                                                    : 'items'}
+                                            </p>
+                                        </div>
+                                        <strong>
+                                            {formatPrice(cart.total_price)}
+                                        </strong>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
                 </div>
-            </form>
+            </main>
         </>
-    )
+    );
 }
-
-

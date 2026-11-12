@@ -3,8 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\buyerController;
 use App\Http\Controllers\ProductController;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -35,15 +35,20 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+    // buyer
     Route::get('/buyer', [buyerController::class, 'index'])->name('buyer.index');
+    Route::get('/buyer/create', [buyerController::class, 'create'])->name('buyer.create');
     Route::post('/buyer', [buyerController::class, 'store'])->name('buyer.store');
+    Route::post('/buyer/cart-list', [buyerController::class, 'storeCartList'])->name('buyer.cart-list.store');
 });
 
-Route::get("/index", function () {
-    return Inertia::render("index");
-})->name("demo.index");
+Route::get('/index', function () {
+    return Inertia::render('index');
+})->name('demo.index');
 
-Route::post("/index", function (Request $request) {
+Route::post('/index', function (Request $request) {
     $data = $request->all();
+
     return response()->json($data);
-})->name("demo.store");
+})->name('demo.store');
